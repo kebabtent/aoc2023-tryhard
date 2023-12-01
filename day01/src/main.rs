@@ -11,7 +11,7 @@ fn main() {
 			let i = w.iter().enumerate().map(|(i, &w)| {
 				let mut t = l.match_indices(w).map(|m| m.0);
 				let f = t.next();
-				(i as u32, f.unwrap_or(!0), t.last().or(f))
+				(i, f.unwrap_or(!0), t.last().or(f))
 			});
 
 			let j = i.clone().filter(|&(i, _, _)| i < 10);
