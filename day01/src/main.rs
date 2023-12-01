@@ -9,27 +9,18 @@ fn main() {
 	let (a, b) = read_lines()
 		.map(|l| {
 			let mut t = l.chars().filter(|c| c.is_numeric()).map(|c| c as u32 - 48);
-			let a = t.next().unwrap();
+			let f = t.next().unwrap();
+			let a = f * 10 + t.last().unwrap_or(f);
 
-			let b = w
-				.iter()
-				.enumerate()
-				.map(|(i, &w)| {
-					let mut t = l.match_indices(w);
-					let f = t.next().map(|f| f.0);
-					(i as u32 % 10, f, t.last().map(|l| l.0).or(f))
-				})
-				.fold(((Some(usize::MAX), 0), (None, 0)), |mut c, (i, f, l)| {
-					if f < c.0 .0 && f.is_some() {
-						c.0 = (f, i);
-					}
-					if l > c.1 .0 {
-						c.1 = (l, i);
-					}
-					c
-				});
+			let i = w.iter().enumerate().map(|(i, &w)| {
+				let mut t = l.match_indices(w).map(|m| m.0);
+				let f = t.next();
+				(i as u32 % 10, f.unwrap_or(!0), t.last().or(f))
+			});
 
-			(a * 10 + t.last().unwrap_or(a), b.0 .1 * 10 + b.1 .1)
+			let f = i.clone().min_by_key(|&(_, f, _)| f).unwrap().0;
+			let b = f * 10 + i.max_by_key(|&(_, _, l)| l).unwrap().0;
+			(a, b)
 		})
 		.tuple_sum();
 	println!("{a}");
