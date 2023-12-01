@@ -19,19 +19,17 @@ fn main() {
 					let f = t.next().map(|f| f.0);
 					(i as u32 % 10, f, t.last().map(|l| l.0).or(f))
 				})
-				.fold((Some(usize::MAX), 0, None, 0), |mut c, (i, f, l)| {
-					if f < c.0 && f.is_some() {
-						c.0 = f;
-						c.1 = i;
+				.fold(((Some(usize::MAX), 0), (None, 0)), |mut c, (i, f, l)| {
+					if f < c.0 .0 && f.is_some() {
+						c.0 = (f, i);
 					}
-					if l > c.2 {
-						c.2 = l;
-						c.3 = i;
+					if l > c.1 .0 {
+						c.1 = (l, i);
 					}
 					c
 				});
 
-			(a * 10 + t.last().unwrap_or(a), b.1 * 10 + b.3)
+			(a * 10 + t.last().unwrap_or(a), b.0 .1 * 10 + b.1 .1)
 		})
 		.tuple_sum();
 	println!("{a}");
