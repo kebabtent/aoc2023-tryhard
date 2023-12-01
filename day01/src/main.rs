@@ -15,10 +15,10 @@ fn main() {
 			});
 
 			let j = i.clone().filter(|&(i, _, _)| i < 10);
-			let f = j.clone().min_by_key(|&(_, f, _)| f).unwrap().0;
-			let a = j.max_by_key(|&(_, _, l)| l).unwrap().0 + f * 10;
-			let f = i.clone().min_by_key(|&(_, f, _)| f).unwrap().0 % 10;
-			let b = i.max_by_key(|&(_, _, l)| l).unwrap().0 % 10 + f * 10;
+			let f = j.clone().min_by_key(|&v| v.1).unwrap().0;
+			let a = f * 10 + j.max_by_key(|&v| v.2).unwrap().0;
+			let f = i.clone().min_by_key(|&v| v.1).unwrap().0 % 10;
+			let b = f * 10 + i.max_by_key(|&v| v.2).unwrap().0 % 10;
 			(a, b)
 		})
 		.tuple_sum();
