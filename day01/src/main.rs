@@ -14,7 +14,7 @@ fn main() {
 				(i, f.unwrap_or(!0), t.last().or(f))
 			});
 
-			let j = i.clone().filter(|&(i, _, _)| i < 10);
+			let j = i.clone().filter(|&v| v.0 < 10);
 			let f = j.clone().min_by_key(|&v| v.1).unwrap().0;
 			let a = f * 10 + j.max_by_key(|&v| v.2).unwrap().0;
 			let f = i.clone().min_by_key(|&v| v.1).unwrap().0 % 10;
