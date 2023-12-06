@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::mem::swap;
 use std::ops::Add;
 
@@ -7,12 +8,12 @@ pub type Quartet<T> = (T, T, T, T);
 pub type Array<const N: usize, T> = [T; N];
 
 pub trait Tuple<T>: Clone + Sized {
-	fn collect<I: Iterator<Item = T>>(it: I) -> Option<Self>;
+	fn collect<I: Iterator<Item = T>>(it: &mut I) -> Option<Self>;
 	fn push_right(&mut self, v: T);
 }
 
 impl<T: Clone> Tuple<T> for Doublet<T> {
-	fn collect<I: Iterator<Item = T>>(mut it: I) -> Option<Self> {
+	fn collect<I: Iterator<Item = T>>(it: &mut I) -> Option<Self> {
 		Some((it.next()?, it.next()?))
 	}
 
@@ -23,7 +24,7 @@ impl<T: Clone> Tuple<T> for Doublet<T> {
 }
 
 impl<T: Clone> Tuple<T> for Triplet<T> {
-	fn collect<I: Iterator<Item = T>>(mut it: I) -> Option<Self> {
+	fn collect<I: Iterator<Item = T>>(it: &mut I) -> Option<Self> {
 		Some((it.next()?, it.next()?, it.next()?))
 	}
 
@@ -35,7 +36,7 @@ impl<T: Clone> Tuple<T> for Triplet<T> {
 }
 
 impl<T: Clone> Tuple<T> for Quartet<T> {
-	fn collect<I: Iterator<Item = T>>(mut it: I) -> Option<Self> {
+	fn collect<I: Iterator<Item = T>>(it: &mut I) -> Option<Self> {
 		Some((it.next()?, it.next()?, it.next()?, it.next()?))
 	}
 
@@ -48,7 +49,7 @@ impl<T: Clone> Tuple<T> for Quartet<T> {
 }
 
 impl<const N: usize, T: Copy + Default> Tuple<T> for [T; N] {
-	fn collect<I: Iterator<Item = T>>(mut it: I) -> Option<Self> {
+	fn collect<I: Iterator<Item = T>>(it: &mut I) -> Option<Self> {
 		let mut arr = [T::default(); N];
 		for i in 0..N {
 			arr[i] = it.next()?;
@@ -61,6 +62,23 @@ impl<const N: usize, T: Copy + Default> Tuple<T> for [T; N] {
 			self.swap(i, i + 1);
 		}
 		self[N - 1] = v;
+	}
+}
+
+pub struct TupleIter<I, T> {
+	pub(crate) iter: I,
+	pub(crate) _tuple: PhantomData<T>,
+}
+
+impl<I, T, U> Iterator for TupleIter<I, T>
+where
+	I: Iterator<Item = U>,
+	T: Tuple<U>,
+{
+	type Item = T;
+
+	fn next(&mut self) -> Option<T> {
+		T::collect(&mut self.iter)
 	}
 }
 

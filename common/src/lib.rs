@@ -4,6 +4,7 @@ pub use self::tuple::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::iter::once;
+use std::marker::PhantomData;
 use std::str::FromStr;
 
 mod bitmap;
@@ -70,6 +71,16 @@ pub trait IterExt: Iterator + Sized {
 		Tuple::collect(self)
 	}
 
+	fn tuple_iter<T>(self) -> TupleIter<Self, T>
+	where
+		T: Tuple<Self::Item>,
+	{
+		TupleIter {
+			iter: self,
+			_tuple: PhantomData,
+		}
+	}
+
 	fn tuple_windows<T>(mut self) -> TupleWindows<Self, T>
 	where
 		T: Tuple<Self::Item>,
@@ -77,7 +88,7 @@ pub trait IterExt: Iterator + Sized {
 	{
 		let tuple = self
 			.next()
-			.and_then(|f| T::collect(once(f.clone()).chain(once(f)).chain(&mut self)));
+			.and_then(|f| T::collect(&mut once(f.clone()).chain(once(f)).chain(&mut self)));
 
 		TupleWindows { iter: self, tuple }
 	}
