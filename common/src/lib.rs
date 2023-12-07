@@ -3,7 +3,8 @@ pub use self::buffer::*;
 pub use self::tuple::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::iter::once;
+use std::iter::Iterator;
+use std::iter::{once, Peekable};
 use std::marker::PhantomData;
 use std::str::FromStr;
 
@@ -48,9 +49,12 @@ fn reader() -> BufReader<File> {
 pub trait IterExt: Iterator + Sized {
 	fn batching<B, F>(self, f: F) -> Batching<Self, F>
 	where
-		F: FnMut(&mut Self) -> Option<B>,
+		F: FnMut(&mut Peekable<Self>) -> Option<B>,
 	{
-		Batching { f, iter: self }
+		Batching {
+			f,
+			iter: self.peekable(),
+		}
 	}
 
 	fn fold_while<S, B, F>(&mut self, mut state: S, mut f: F) -> Option<B>
@@ -96,18 +100,19 @@ pub trait IterExt: Iterator + Sized {
 
 impl<T> IterExt for T where T: Iterator {}
 
-pub struct Batching<I, F> {
+pub struct Batching<I: Iterator, F> {
 	f: F,
-	iter: I,
+	iter: Peekable<I>,
 }
 
 impl<B, F, I> Iterator for Batching<I, F>
 where
 	I: Iterator,
-	F: FnMut(&mut I) -> Option<B>,
+	F: FnMut(&mut Peekable<I>) -> Option<B>,
 {
 	type Item = B;
 	fn next(&mut self) -> Option<B> {
+		self.iter.peek()?;
 		(self.f)(&mut self.iter)
 	}
 
@@ -165,5 +170,47 @@ impl<L, R> Either<L, R> {
 			Self::R(r) => r,
 			_ => panic!("Not right"),
 		}
+	}
+}
+
+pub struct NeighboursIter {
+	x: usize,
+	y: usize,
+	m: usize,
+	n: usize,
+	i: usize,
+}
+
+impl Iterator for NeighboursIter {
+	type Item = (usize, usize);
+
+	fn next(&mut self) -> Option<Self::Item> {
+		loop {
+			let x = self.x + self.i % 3;
+			let y = self.y + self.i / 3;
+			self.i += 1;
+
+			match self.i {
+				5 => continue,
+				10 => return None,
+				_ => {}
+			}
+
+			if x == 0 || x > self.m || y == 0 || y > self.n {
+				continue;
+			}
+			return Some((x - 1, y - 1));
+		}
+	}
+}
+
+pub trait Neighbours {
+	fn neighbours(self, n: usize, m: usize) -> NeighboursIter;
+}
+
+impl Neighbours for (usize, usize) {
+	fn neighbours(self, m: usize, n: usize) -> NeighboursIter {
+		let (x, y) = self;
+		NeighboursIter { x, y, m, n, i: 0 }
 	}
 }
