@@ -134,3 +134,22 @@ where
 		self.fold((0, 0), |a, x| (a.0 + x.0 as u32, a.1 + x.1 as u32))
 	}
 }
+
+pub trait TupleMin<T, U>
+where
+	T: Tuple<U>,
+{
+	type Output: Tuple<U>;
+	fn tuple_min(self) -> Option<Self::Output>;
+}
+
+impl<T, U> TupleMin<Doublet<U>, U> for T
+where
+	T: Iterator<Item = Doublet<U>>,
+	U: Ord + Clone,
+{
+	type Output = Doublet<U>;
+	fn tuple_min(self) -> Option<Self::Output> {
+		self.reduce(|(a, b), (x, y)| (a.min(x), b.min(y)))
+	}
+}
