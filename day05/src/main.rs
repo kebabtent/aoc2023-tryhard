@@ -50,7 +50,7 @@ fn main() {
 							r.iter()
 								.filter(move |&&(x, y)| s < x + y && s + l > x)
 								.map(move |&(x, y)| (max(s, x), min(s + l, x + y)))
-								.filter(move |&(p, q)| q > p)
+								.filter(|&(p, q)| q > p)
 								.map(move |(p, q)| (p - s + d, q - p))
 						})
 						.flatten()
